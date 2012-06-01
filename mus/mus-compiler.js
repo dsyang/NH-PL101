@@ -1,4 +1,3 @@
-
 var endTime = function (time, expr) {
 
     if (expr.tag === 'note') {
