@@ -1,0 +1,60 @@
+// start =
+//     expression1
+// 
+// validchar =
+//     [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+// 
+// whitespace = " "+
+// 
+// atom1 =
+//     chars:validchar+
+//     { return chars.join(""); }
+// 
+// spacedexpr =
+//     ws:whitespace  exp: expression1
+//     { return exp;}
+// 
+// expression1 =
+//     atom1
+//   / "(" exps:explist ")"
+//     { return exps;}
+// 
+// explist  =
+//     e:expression1 es:spacedexpr*
+//     {return [e].concat(es);}
+
+
+
+start = expression
+
+validChars = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+
+ws = [ \n\t]
+
+_ = (ws / comment)*
+
+atom = 
+    chars:validChars+
+    { return chars.join(""); }
+
+spacedexpr =
+    _ e:expression 
+    {return e;}
+
+explist = 
+    "(" _ e:expression es:spacedexpr* _ ")"
+    { return [e].concat(es); }
+
+expression = 
+    a:atom
+  / _ e:explist _ {return e;}
+  / quote
+    
+      
+quote = 
+    _ "'" e:explist _
+    {return ["quote", e];}
+
+comment = 
+    ";;" t:[^\n]* '\n'
+    {return t.join(""); }
