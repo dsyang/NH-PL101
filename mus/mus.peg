@@ -1,40 +1,107 @@
 {
     var tempo = 60;
-    var dur = function (x) {return (tempo*1000 / x); };
+    var tempo_base = 4;
+    var dur = function (x) {return (60000 * tempo_base) / (x * tempo);};
+
+    var flatten = function (array) {
+        var flat = [];
+        for (var i = 0, l = array.length; i < l; i++) {
+            var type = Object.prototype.toString.call(array[i]).split(' ').pop().split(']').shift().toLowerCase();
+            if (type) { flat = flat.concat(/^(array|collection|arguments|object)$/.test(type) ? flatten(array[i]) : array[i]); }
+        }
+        return flat;
+    };
+
+
+    var mkNote = function(n, o) {
+        return {tag: 'note', pitch: n+(o.octave), dur: dur(o.duration)}}
+    var recurSeq = function(x, o) {
+        if(x.length === 1) {
+            return mkNote(x[0], o);
+        } else {
+            return {tag: 'seq', left: mkNote(x[0], o), right: recurSeq(x.slice(1), o)};
+        }
+    };
+    var finalRecur = function (x) {
+        if(x.length === 1) {return x[0];}
+        else{return {tag: 'seq', left: x[0], right: finalRecur(x.slice(1))};}
+    };
 
 }
-start = note
+start =
+    _ t:tempo song:(note / noteSeq / notePar / repeat)+
+    { return {tag: 'seq', left: t,
+              right: finalRecur(song)};}
+    / song:(note / noteSeq / notePar / repeat)+
+    { return finalRecur(song); }
+
+
+tempo =
+    ":" "tempo " b:int " = " t:int
+    { tempo_base = b;
+      tempo = t;
+      return {tag: "tempo", base: b, tempo: t}
+    }
+
+int = x:([1-9][0-9]*)
+    { x = flatten(x).join(''); return parseInt(x, 10); }
 
 ws = [ \n\t]
 
 _ = (ws / comment)*
 
-pitchWK = 
+pitchWK =
     [a-g]
 
-pitch = 
+pitch =
     p:pitchWK "#" {return p+"#";}
   / p:pitchWK "b" {return p+"b";}
   / p:pitchWK {return p;}
 
-spacedpitch = 
+spacedpitch =
     _ p:pitch {return p;}
 
-pitchlist = 
+pitchlist =
     "[" _ p:pitch ps:spacedpitch* _ "]"
     { return [p].concat(ps); }
 
-octDur = 
+pitchpar =
+    "<" _ p:pitch ps: spacedpitch+ _ ">"
+    {return [p].concat(ps); }
+
+octDur =
     o:[1-7] "/" d:("1"/"2"/"4"/"8"/"16"/"32")
     { return {octave: o, duration: d}; }
 
 note =
-    n:pitch o:octDur
+    _ n:pitch o:octDur _
     { return {tag: 'note', pitch: n+(o.octave), dur:dur(o.duration)};}
 
-noteSeq = 
-    ps: pitchlist o:octDur
-    {}
-comment = 
+noteSeq =
+    _  ps: pitchlist o:octDur _
+    {
+      return recurSeq(ps, o);
+
+    }
+
+notePar =
+    _ pp: pitchpar o:octDur _
+    {
+        var recurPar = function(x, o) {
+          if(x.length === 1) {
+              return mkNote(x[0], o);
+          } else {
+              return {tag: 'par', left: mkNote(x[0], o), right: recurPar(x.slice(1), o)};
+          }
+        }
+
+      return recurPar(pp, o);
+    }
+
+repeat =
+    _ "|:" phrase:(note / noteSeq / notePar)+ ":|" _
+    { return {tag: 'repeat', section: phrase, count: 2};}
+
+comment =
     ";;" t:[^\n]* '\n'
     {return t.join(""); }
