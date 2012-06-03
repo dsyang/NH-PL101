@@ -14,25 +14,13 @@ console.log(data);
 // Create my parser
 var parse = PEG.buildParser(data).parse;
 
-var csharp = parse("c#4/4");
-assertEqual(csharp, { tag: 'note', pitch: 'c#4', dur: 1000});
-inspect(csharp);
-
-var abseq = parse("[ a b ]4/4");
-assertEqual(abseq, {"tag": "seq",
-                     "left": {"tag": "note", "pitch": "a4", "dur": 1000},
-                     "right": {"tag": "note", "pitch": "b4","dur": 1000}
-                    })
-inspect(abseq);
+console.log("======= Full songs! ======\n");
 
 var jingle1 = parse("[c c g g a a]4/4 g4/2");
-inspect(jingle1)
+inspect(jingle1);
 
 
-var temp1 = parse(":tempo 8 = 120 [c c g g a a]4/4 g4/2");
-inspect(temp1)
-
-var twinkle = parse(";; twinkle twinkle\n"
+var twinkletext = (";; twinkle twinkle\n"
                     + ":tempo 4 = 60\n"
                     + "[c c g g a a]4/4 g4/2\n"
                     + "[f f e e d d]4/4 c4/2\n"
@@ -40,4 +28,37 @@ var twinkle = parse(";; twinkle twinkle\n"
                     + "[c c g g a a]4/4 g4/2\n"
                     + "[f f e e d d]4/4 <c e g>4/2\n"
                     )
-inspect(twinkle)
+console.log(twinkletext);
+inspect(parse(twinkletext));
+
+
+
+
+var csharptxt = "c#4/4";
+var csharp = parse(csharptxt);
+assertEqual(csharp, { tag: 'note', pitch: 'c#4', dur: 1000});
+console.log("\n\nTESTING csharp:  "+csharptxt+"\n\n")
+inspect(csharp);
+
+var abseqtxt = "[ a b ]4/4";
+var abseq = parse(abseqtxt);
+assertEqual(abseq, {"tag": "seq",
+                     "left": {"tag": "note", "pitch": "a4", "dur": 1000},
+                     "right": {"tag": "note", "pitch": "b4","dur": 1000}
+                    })
+console.log("\n\nTESTING sequence:  "+abseqtxt+"\n\n")
+inspect(abseq);
+
+
+var tempotxt = ":tempo 8 = 120  a4/4  g4/2";
+var tempo = parse(tempotxt);
+console.log("\n\nTESTING tempo:  "+tempotxt+"\n\n")
+inspect(tempo)
+
+var repeattxt = "|: a4/4 :|";
+var repeat = parse(repeattxt);
+assertEqual(repeat, {tag: "repeat",
+                     section: {tag: "note", pitch: "a4", dur: 1000},
+                     count: 2});
+console.log("\n\nTESTING repeat:  "+repeattxt+"\n\n")
+inspect(repeat)

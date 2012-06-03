@@ -99,7 +99,7 @@ notePar =
     }
 
 repeat =
-    _ "|:" phrase:(note / noteSeq / notePar)+ ":|" _
+    _ "|:" phrase:start ":|" _
     { return {tag: 'repeat', section: phrase, count: 2};}
 
 comment =
