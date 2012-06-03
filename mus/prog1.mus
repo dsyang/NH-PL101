@@ -1,0 +1,8 @@
+;; twinkle twinkle 
+\tempo 4 = 60
+[c c g g a a]4/4 g4/2
+[f f e e d d]4/4 c4/2
+|: [g g f f e e]4/4 d4/2 :|
+[c c g g a a]4/4 g4/2
+[f f e e d d]4/4 {c|e|g}4/2
+

@@ -1,0 +1,40 @@
+{
+    var tempo = 60;
+    var dur = function (x) {return (tempo*1000 / x); };
+
+}
+start = note
+
+ws = [ \n\t]
+
+_ = (ws / comment)*
+
+pitchWK = 
+    [a-g]
+
+pitch = 
+    p:pitchWK "#" {return p+"#";}
+  / p:pitchWK "b" {return p+"b";}
+  / p:pitchWK {return p;}
+
+spacedpitch = 
+    _ p:pitch {return p;}
+
+pitchlist = 
+    "[" _ p:pitch ps:spacedpitch* _ "]"
+    { return [p].concat(ps); }
+
+octDur = 
+    o:[1-7] "/" d:("1"/"2"/"4"/"8"/"16"/"32")
+    { return {octave: o, duration: d}; }
+
+note =
+    n:pitch o:octDur
+    { return {tag: 'note', pitch: n+(o.octave), dur:dur(o.duration)};}
+
+noteSeq = 
+    ps: pitchlist o:octDur
+    {}
+comment = 
+    ";;" t:[^\n]* '\n'
+    {return t.join(""); }
